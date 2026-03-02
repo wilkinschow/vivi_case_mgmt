@@ -59,7 +59,6 @@ const gridOptions: GridOptions = {
             >
               {{ entry[1] }}
 
-              <!-- Show badge ONLY when tab is active -->
               <span
                 *ngIf="activeTab === entry[0]"
                 class="tabBadge"
@@ -68,6 +67,14 @@ const gridOptions: GridOptions = {
               </span>
             </button>
           </div>
+          <button
+            class="exportButton"
+            [disabled]="selectedRowCount === 0"
+            (click)="onExport()"
+          >
+            <i class="fa-thin fa-file-export exportIcon"></i>
+            <span class="exportText">Export Report</span>
+          </button>
         </div>
         <div class="grid" [ngClass]="themeClass">
           <ag-grid-angular
@@ -84,6 +91,7 @@ const gridOptions: GridOptions = {
             [components]="components"
             (gridReady)="onGridReady($event)" 
             [gridOptions]="gridOptions"
+            (selectionChanged)="onSelectionChanged()"
           >
           </ag-grid-angular>
         </div>
@@ -161,6 +169,7 @@ export class AppComponent {
   aiGcCount: number = 0;
 
   handleTabClick(selectedTab: string) {
+    this.gridApi.deselectAll();
     this.activeTab = selectedTab;
     this.gridApi.setFilterModel({
       isValidVideo: {
@@ -169,6 +178,23 @@ export class AppComponent {
         filter: selectedTab,
       },
     });
+  }
+  onExport() {
+    const selectedRows = this.gridApi.getSelectedRows();
+
+    if (!selectedRows.length) {
+      console.warn('No rows selected');
+      return;
+    }
+
+    this.gridApi.exportDataAsCsv({
+      onlySelected: true,
+      fileName: 'export-report.csv',
+    });
+  }
+  selectedRowCount = 0;
+  onSelectionChanged() {
+    this.selectedRowCount = this.gridApi.getSelectedRows().length;
   }
   constructor(private http: HttpClient) {}
   onGridReady(params: any) {
