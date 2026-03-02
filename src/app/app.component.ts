@@ -43,6 +43,11 @@ const gridOptions: GridOptions = {
   imports: [CommonModule, AgGridAngular],
   template: `
     <div class="wrapper">
+      <div  class="header">
+        <div class="top-container">
+          <img src="assets/logo.png" alt="V.I.V.I" class="top-icon" />
+        </div>
+      </div>
       <div class="container">
         <div class="exampleHeader">
           <div class="tabs">
@@ -53,6 +58,14 @@ const gridOptions: GridOptions = {
               (click)="handleTabClick(entry[0])"
             >
               {{ entry[1] }}
+
+              <!-- Show badge ONLY when tab is active -->
+              <span
+                *ngIf="activeTab === entry[0]"
+                class="tabBadge"
+              >
+                {{ getTabCount(entry[0]) }}
+              </span>
             </button>
           </div>
         </div>
@@ -144,6 +157,8 @@ export class AppComponent {
     statusCellRenderer: StatusCellRendererComponent,
   };
   private gridApi!: GridApi;
+  incidentCount : number = 0;
+  aiGcCount: number = 0;
 
   handleTabClick(selectedTab: string) {
     this.activeTab = selectedTab;
@@ -162,11 +177,18 @@ export class AppComponent {
     this.handleTabClick(this.activeTab);
   }
 
+  getTabCount(tabKey: string): number {
+    if (tabKey === 'true') return this.incidentCount;
+    if (tabKey === 'false') return this.aiGcCount;
+    return 0;
+  }
+
   getData() {
     this.http.get<any[]>('http://localhost:3000/fetchData')
     .subscribe({
       next: (data) => {
-        console.log(data)
+        this.incidentCount = data.filter(r => r.isValidVideo === true).length;
+        this.aiGcCount = data.filter(r => r.isValidVideo === false).length;
         this.gridApi.setGridOption('rowData', data);
       },
       error: (err) => {
