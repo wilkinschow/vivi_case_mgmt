@@ -1,0 +1,135 @@
+[{
+  "_id": {
+    "$oid": "69a557e05e2a6df18b8874a3"
+  },
+  "uuid": "5a4295e5-9d4b-47a2-894f-ef779eaa9bb7",
+  "media_uuid": null,
+  "name": "18feb2026 punggol north ave #SLZ1688H mercedes glc250 crash into road divider",
+  "size": "0 B",
+  "videoURL": "https://www.youtube.com/watch?v=sAlKeEqXI5c",
+  "videoDuration": "00:00",
+  "submissionDate": "2 March 2026, 5:26 PM",
+  "isValidVideo": true,
+  "videoDesc": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+  "addDesc": "Whatsapp",
+  "incidentType": "Traffic",
+  "severity": 2,
+  "location": "Buona Vista",
+  "summary": "",
+  "createdAt": {
+    "$date": "2026-03-02T09:26:56.564Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-02T09:26:56.564Z"
+  },
+  "__v": 0,
+  "isProcessed": false
+},
+{
+  "_id": {
+    "$oid": "69a9289f3096665fd6887f40"
+  },
+  "uuid": "4d191e64-8aaa-4ceb-9a3f-e637b19f70de",
+  "media_uuid": null,
+  "name": "14feb2026 vivo city #SHA4037P comfort hyundai ioniq moving off when passenger was still boarding",
+  "size": "0 B",
+  "videoURL": "https://www.youtube.com/watch?v=94sBdqYGNS8",
+  "videoDuration": "00:00",
+  "submissionDate": "5 March 2026, 2:54 PM",
+  "isValidVideo": false,
+  "videoDesc": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+  "addDesc": "Youtube",
+  "incidentType": "Traffic",
+  "severity": 1,
+  "location": "Buona Vista",
+  "summary": "",
+  "isProcessed": false,
+  "createdAt": {
+    "$date": "2026-03-05T06:54:23.674Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-05T06:54:23.674Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69a928cc3096665fd6887f43"
+  },
+  "uuid": "909e7a75-03f0-4147-af1a-403b83e4c026",
+  "media_uuid": null,
+  "name": "17feb2026  man confront parking enforcement officers  issuing fines during 1st day of CNY",
+  "size": "0 B",
+  "videoURL": "https://www.youtube.com/watch?v=T_YTlf-7t5M",
+  "videoDuration": "00:00",
+  "submissionDate": "5 March 2026, 2:55 PM",
+  "isValidVideo": true,
+  "videoDesc": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+  "addDesc": "TikTok",
+  "incidentType": "Traffic",
+  "severity": 1,
+  "location": "Buona Vista",
+  "summary": "",
+  "isProcessed": false,
+  "createdAt": {
+    "$date": "2026-03-05T06:55:08.787Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-05T06:55:08.787Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69a928f23096665fd6887f46"
+  },
+  "uuid": "665098de-9a35-4185-8152-9d9aec455736",
+  "media_uuid": null,
+  "name": "4jan2026 ecp chain collision on lane 2 of the expressway",
+  "size": "0 B",
+  "videoURL": "https://www.youtube.com/watch?v=JPX0Vysa-HQ",
+  "videoDuration": "00:00",
+  "submissionDate": "5 March 2026, 2:55 PM",
+  "isValidVideo": true,
+  "videoDesc": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+  "addDesc": "Whatsapp",
+  "incidentType": "Traffic",
+  "severity": 3,
+  "location": "Buona Vista",
+  "summary": "",
+  "isProcessed": false,
+  "createdAt": {
+    "$date": "2026-03-05T06:55:46.961Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-05T06:55:46.961Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69a9291f3096665fd6887f49"
+  },
+  "uuid": "79bf6a1f-8472-4889-8e4d-ab43ef8e103c",
+  "media_uuid": null,
+  "name": "17dec2025 bke #FBK7672U honda adv smash side window of #SMK7036P toyota altis",
+  "size": "0 B",
+  "videoURL": "https://www.youtube.com/watch?v=t_S9Hq3lqSo",
+  "videoDuration": "00:00",
+  "submissionDate": "5 March 2026, 2:56 PM",
+  "isValidVideo": true,
+  "videoDesc": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem.",
+  "addDesc": "Telegram",
+  "incidentType": "Traffic",
+  "severity": 0,
+  "location": "Buona Vista",
+  "summary": "",
+  "isProcessed": false,
+  "createdAt": {
+    "$date": "2026-03-05T06:56:31.292Z"
+  },
+  "updatedAt": {
+    "$date": "2026-03-05T06:56:31.292Z"
+  },
+  "__v": 0
+}]

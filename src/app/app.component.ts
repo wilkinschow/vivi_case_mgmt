@@ -150,10 +150,10 @@ const gridOptions: GridOptions = {
                 </div>
               </div>
             </div>
-            <!-- <div class="video-preview" *ngIf="!isYouTubeVideo">
+            <div class="video-preview" *ngIf="!isYouTubeVideo">
               Video Data
               <pre>{{ selectedRow | json }}</pre>
-            </div> -->
+            </div>
             <div class="case-details">
               <div class="case-title">
                 Case Report Details
