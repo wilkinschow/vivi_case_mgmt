@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ViewChild, ElementRef } from "@angular/core";
 import { AgGridAngular } from "ag-grid-angular";
 import type {
   ColDef,
@@ -42,6 +42,7 @@ const gridOptions: GridOptions = {
 };
 
 @Component({
+  styleUrls: ['./app.component.css'],
   standalone: true,
   selector: "app-root",
   imports: [CommonModule, AgGridAngular],
@@ -150,9 +151,27 @@ const gridOptions: GridOptions = {
                 </div>
               </div>
             </div>
-            <div class="video-preview" *ngIf="!isYouTubeVideo">
-              Video Data
-              <pre>{{ selectedRow | json }}</pre>
+            <div class="video-preview" *ngIf="isLocalVideo">
+              <video
+                #localVideoPlayer
+                width="507"
+                height="285"
+                [src]="localVideoUrl"
+                controls>
+                Your browser does not support video tag.
+              </video>
+              <div class="thumbnail-header">
+                <span>Images(s)</span>
+                <span style="font-weight: 400;">Total: {{ localVideoThumbnails.length }}</span>
+              </div>
+              <div class="thumbnail-reel" *ngIf="localVideoThumbnails.length > 0">
+                <img
+                  *ngFor="let thumb of localVideoThumbnails"
+                  [src]="thumb.url"
+                  class="thumb"
+                  (click)="seekLocalVideo(thumb.timestamp)"
+                />
+              </div>
             </div>
             <div class="case-details">
               <div class="case-title">
@@ -197,9 +216,9 @@ const gridOptions: GridOptions = {
                 </div>
 
                 <div class="case-row">
-                  <div class="case-label">Incident Details</div>
+                  <div class="case-value" [style.white-space]="'pre-wrap'">
                   <div class="case-value">
-                    {{ selectedRow?.summary }}
+                    {{ selectedRow?.videoDesc }}
                   </div>
                 </div>
 
@@ -216,6 +235,10 @@ const gridOptions: GridOptions = {
 export class AppComponent {
   videoLink: SafeResourceUrl | null = null;
   isYouTubeVideo = false;
+  isLocalVideo = false;
+  localVideoUrl: string | null = null;
+  localVideoThumbnails: { id: string; url: string; timestamp: number }[] = [];
+  @ViewChild('localVideoPlayer', { static: false }) localVideoElement!: ElementRef<HTMLVideoElement>;
   severityLevels: Record<number, string> = {
     0: "Unassigned",
     1: "Low",
@@ -229,17 +252,21 @@ export class AppComponent {
   colDefs: ColDef[] = [
     {
       field: "uuid",
+      minWidth: 200,      
       headerName: "Case ID",
+      sort: 'desc', // Default ascending sort
+      
     },
     { 
       field: "incidentType",
+      minWidth: 150,
       headerName: "Incident Type",
     },
     {
       field: "severity",
       valueFormatter: severityFormatter,
       cellRenderer: "statusCellRenderer",
-      minWidth: 193,
+      minWidth: 150,
       filterParams: {
         valueFormatter: severityFormatter,
       },
@@ -247,21 +274,23 @@ export class AppComponent {
     },
     { 
       field: "location",
+      minWidth: 150,      
     },
     { 
       field: "submissionDate",
       headerName: "Date & Time of Report",
+      minWidth: 200,
     },
     { 
       field: "summary",
-      minWidth: 322,
+      minWidth: 700,
       headerName: "Incident Summary",
     },
-    { field: "action", 
-      cellRenderer: "actionsCellRenderer", 
-      minWidth: 193,
-      filter: false, 
-    },
+    // { field: "action", 
+    //   cellRenderer: "actionsCellRenderer", 
+    //   minWidth: 193,
+    //   filter: false, 
+    // },
     { 
       field: "isValidVideo",
       headerName: "Valid Video",
@@ -370,11 +399,55 @@ export class AppComponent {
     event.node.setSelected(true);
     this.selectedRow = event.data;
     this.showDetailPage = true;
-    if (event.data.videoURL) {
+    
+    // Reset flags
+    this.isYouTubeVideo = false;
+    this.isLocalVideo = false;
+    this.videoLink = null;
+    this.localVideoUrl = null;
+    
+    // Check for local video first
+    if (event.data.name && event.data.name.endsWith('.mp4')) {
+      this.setLocalVideo(event.data.name);
+    }
+    // Then check for YouTube video
+    else if (event.data.videoURL) {
       this.setVideoLink(event.data.videoURL);
     }
-    else{
-      this.isYouTubeVideo = false;
+  }
+  
+  // Set up local video player
+  setLocalVideo(filename: string) {
+    this.isLocalVideo = true;
+    this.localVideoUrl = `assets/video/${filename}`;
+    
+    // Load pre-generated thumbnails
+    const baseName = filename.replace('.mp4', '');
+    this.localVideoThumbnails = [
+      {
+        id: `${baseName}_1`,
+        url: `assets/video/thumbnails/${baseName}_1.jpg`,
+        timestamp: 0.25
+      },
+      {
+        id: `${baseName}_2`,
+        url: `assets/video/thumbnails/${baseName}_2.jpg`,
+        timestamp: 0.50
+      },
+      {
+        id: `${baseName}_3`,
+        url: `assets/video/thumbnails/${baseName}_3.jpg`,
+        timestamp: 0.75
+      }
+    ];
+  }
+
+  // Seek local video to specific timestamp
+  seekLocalVideo(percentage: number) {
+    if (this.localVideoElement?.nativeElement) {
+      const video = this.localVideoElement.nativeElement;
+      const timestamp = video.duration * percentage;
+      video.currentTime = timestamp;
     }
   }
 
@@ -398,9 +471,9 @@ export class AppComponent {
 
     // For now, just 3 thumbnails as a sample
     const thumbUrls = [
-      `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
-      `https://img.youtube.com/vi/${videoId}/sddefault.jpg`,
+      `https://img.youtube.com/vi/${videoId}/1.jpg`,
+      `https://img.youtube.com/vi/${videoId}/2.jpg`,
+      `https://img.youtube.com/vi/${videoId}/3.jpg`,
     ];
 
     this.videoThumbnails = thumbUrls.map((url, idx) => ({ id: `${videoId}_${idx}`, url }));

@@ -43,6 +43,11 @@
   box-sizing: border-box;
 }
 
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 app-root {
   min-height: 100vh;
   display: block;
