@@ -32,6 +32,13 @@ const severityLevels = {
 const severityFormatter: ValueFormatterFunc = ({ value }) =>
   severityLevels[value as keyof typeof severityLevels] ?? "";
 
+// Format authenticity value (0-1) as percentage
+const authenticityFormatter: ValueFormatterFunc = ({ value }) => {
+  if (value === null || value === undefined) return "";
+  const percentage = (value * 100).toFixed(0);
+  return `${percentage}%`;
+};
+
 const gridOptions: GridOptions = {
   rowSelection: {
     mode: 'multiRow',
@@ -191,14 +198,22 @@ const gridOptions: GridOptions = {
                 </div>
 
                 <div class="case-row">
-                  <div class="case-label">Severity</div>
-                  <span style="display: inline-block;">
+                  <div class="case-label">{{ severityOrAuthenticityLabel }}</div>
+                  <span style="display: inline-block;" *ngIf="activeTab === 'true'">
                     <div
                       class="tag"
-                      [ngClass]="severityLevels[selectedRow?.severity] + 'Tag'"
+                      [ngClass]="severityLevels[severityOrAuthenticityValue] + 'Tag'"
                       [style.padding]="'0px 12px'"
                     >
-                      {{ severityLevels[selectedRow?.severity] }}
+                      {{ severityLevels[severityOrAuthenticityValue] }}
+                    </div>
+                  </span>
+                  <span style="display: inline-block;" *ngIf="activeTab === 'false'">
+                    <div
+                      class="tag authenticity-tag"
+                      [style.padding]="'0px 12px'"
+                    >
+                      {{ formattedAuthenticityValue }}
                     </div>
                   </span>
                 </div>
@@ -299,6 +314,98 @@ export class AppComponent {
     },
   ];
 
+  // Column definitions for Incidents tab (Severity header)
+  incidentsColDefs: ColDef[] = [
+    {
+      field: "uuid",
+      minWidth: 200,
+      headerName: "Case ID",
+      sort: 'desc',
+    },
+    { 
+      field: "incidentType",
+      minWidth: 150,
+      headerName: "Incident Type",
+    },
+    {
+      field: "severity",
+      valueFormatter: severityFormatter,
+      cellRenderer: "statusCellRenderer",
+      minWidth: 150,
+      filterParams: {
+        valueFormatter: severityFormatter,
+      },
+      headerClass: "header-status",
+      headerName: "Severity",
+    },
+    { 
+      field: "location",
+      minWidth: 150,      
+    },
+    { 
+      field: "submissionDate",
+      headerName: "Date & Time of Report",
+      minWidth: 200,
+    },
+    { 
+      field: "summary",
+      minWidth: 700,
+      headerName: "Incident Summary",
+    },
+    { 
+      field: "isValidVideo",
+      headerName: "Valid Video",
+      cellDataType: 'string',
+      hide: true,
+    },
+  ];
+
+  // Column definitions for AI-GC tab (Authenticity header)
+  aiGcColDefs: ColDef[] = [
+    {
+      field: "uuid",
+      minWidth: 200,
+      headerName: "Case ID",
+      sort: 'desc',
+    },
+    { 
+      field: "incidentType",
+      minWidth: 150,
+      headerName: "Incident Type",
+    },
+    {
+      field: "authenticity",
+      valueFormatter: authenticityFormatter,
+      cellRenderer: "statusCellRenderer",
+      minWidth: 150,
+      filterParams: {
+        valueFormatter: authenticityFormatter,
+      },
+      headerClass: "header-status",
+      headerName: "Authenticity",
+    },
+    { 
+      field: "location",
+      minWidth: 150,      
+    },
+    { 
+      field: "submissionDate",
+      headerName: "Date & Time of Report",
+      minWidth: 200,
+    },
+    { 
+      field: "summary",
+      minWidth: 700,
+      headerName: "Incident Summary",
+    },
+    { 
+      field: "isValidVideo",
+      headerName: "Valid Video",
+      cellDataType: 'string',
+      hide: true,
+    },
+  ];
+
   rowData: any[] = [];
   defaultColDef: ColDef = { 
     minWidth: 259,
@@ -321,6 +428,14 @@ export class AppComponent {
   handleTabClick(selectedTab: string) {
     this.gridApi.deselectAll();
     this.activeTab = selectedTab;
+    
+    // Switch column definitions based on the selected tab
+    if (selectedTab === 'true') {
+      this.gridApi.setGridOption('columnDefs', this.incidentsColDefs);
+    } else {
+      this.gridApi.setGridOption('columnDefs', this.aiGcColDefs);
+    }
+    
     this.gridApi.setFilterModel({
       isValidVideo: {
         filterType: 'text',
@@ -394,11 +509,41 @@ export class AppComponent {
 
   showDetailPage = false;
   selectedRow: any = null;
+
+  // Get the appropriate label (Severity or Authenticity) based on the active tab
+  get severityOrAuthenticityLabel(): string {
+    return this.activeTab === 'true' ? 'Severity' : 'Authenticity';
+  }
+
+  // Get the appropriate value (severity or authenticity) based on the active tab
+  get severityOrAuthenticityValue(): number {
+    if (this.activeTab === 'true') {
+      return this.selectedRow?.severity;
+    } else {
+      return this.selectedRow?.authenticity;
+    }
+  }
+
+  // Format authenticity value as percentage for detail page display
+  get formattedAuthenticityValue(): string {
+    const value = this.selectedRow?.authenticity;
+    if (value === null || value === undefined) return "";
+    const percentage = (value * 100).toFixed(0);
+    return `${percentage}%`;
+  }
+
   onRowClicked(event: any) {
     this.gridApi.deselectAll();
     event.node.setSelected(true);
     this.selectedRow = event.data;
     this.showDetailPage = true;
+    
+    // Update activeTab based on row type to ensure correct label/value display
+    if (event.data.isValidVideo === true) {
+      this.activeTab = 'true'; // Incidents
+    } else {
+      this.activeTab = 'false'; // AI-GC
+    }
     
     // Reset flags
     this.isYouTubeVideo = false;
