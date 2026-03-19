@@ -192,7 +192,7 @@ const gridOptions: GridOptions = {
                 <div class="case-row">
                   <div class="case-label">Date & Time of Report</div>
                   <div class="case-value">
-                    {{ selectedRow?.createdAt | date:'medium' }}
+                    {{ selectedRow?.createdAt | date:'d MMMM y, h:mm:ss a' }}
                   </div>
                 </div>
 
