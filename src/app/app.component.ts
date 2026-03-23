@@ -264,55 +264,7 @@ export class AppComponent {
   statusEntries = Object.entries(tabs);
   activeTab = "true";
   gridOptions = gridOptions;
-  colDefs: ColDef[] = [
-    {
-      field: "uuid",
-      minWidth: 200,      
-      headerName: "Case ID",
-      sort: 'desc', // Default ascending sort
-      
-    },
-    { 
-      field: "incidentType",
-      minWidth: 150,
-      headerName: "Incident Type",
-    },
-    {
-      field: "severity",
-      valueFormatter: severityFormatter,
-      cellRenderer: "statusCellRenderer",
-      minWidth: 150,
-      filterParams: {
-        valueFormatter: severityFormatter,
-      },
-      headerClass: "header-status",
-    },
-    { 
-      field: "location",
-      minWidth: 150,      
-    },
-    { 
-      field: "submissionDate",
-      headerName: "Date & Time of Report",
-      minWidth: 200,
-    },
-    { 
-      field: "summary",
-      minWidth: 700,
-      headerName: "Incident Summary",
-    },
-    // { field: "action", 
-    //   cellRenderer: "actionsCellRenderer", 
-    //   minWidth: 193,
-    //   filter: false, 
-    // },
-    { 
-      field: "isValidVideo",
-      headerName: "Valid Video",
-      cellDataType: 'string',
-      hide: true,
-    },
-  ];
+  colDefs: ColDef[] = [];
 
   // Column definitions for Incidents tab (Severity header)
   incidentsColDefs: ColDef[] = [
@@ -507,6 +459,17 @@ export class AppComponent {
     });
   }
 
+  updateField = (id: string, field: string, value: any) => {
+    this.http.patch(`http://localhost:3000/videos/${id}`, { field, value }).subscribe({
+      next: () => {
+        console.log('Updated');
+        const rowNode = this.gridApi.getRowNode(id);
+        if (rowNode) rowNode.setDataValue(field, value);
+      },
+      error: (err) => console.error(err)
+    });
+  };
+
   showDetailPage = false;
   selectedRow: any = null;
 
@@ -629,5 +592,42 @@ export class AppComponent {
     this.videoLink = this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://www.youtube.com/embed/${videoId}`
     );
+  }
+
+  ngOnInit() {
+    // Severity column uses the updateField callback
+    this.colDefs = [
+      {
+        field: "uuid",
+        minWidth: 200,
+        headerName: "Case ID",
+        sort: 'desc',
+      },
+      { 
+        field: "incidentType",
+        minWidth: 150,
+        headerName: "Incident Type",
+      },
+      {
+        field: "severity",
+        valueFormatter: severityFormatter,
+        cellRenderer: "statusCellRenderer",
+        minWidth: 150,
+        filterParams: { valueFormatter: severityFormatter },
+        headerClass: "header-status",
+        headerName: "Severity",
+        cellRendererParams: {
+          onUpdate: this.updateField.bind(this) // ✅ safe now
+        }
+      },
+      { field: "location", minWidth: 150 },
+      { field: "submissionDate", headerName: "Date & Time of Report", minWidth: 200 },
+      { field: "summary", minWidth: 700, headerName: "Incident Summary" },
+      { field: "isValidVideo", hide: true }
+    ];
+
+    // If you have tab-specific columns, do the same in ngOnInit
+    this.incidentsColDefs = [...this.colDefs]; // adjust as needed
+    this.aiGcColDefs = [...this.colDefs];      // adjust for AI-GC tab
   }
 }
