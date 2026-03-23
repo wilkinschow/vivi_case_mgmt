@@ -267,96 +267,10 @@ export class AppComponent {
   colDefs: ColDef[] = [];
 
   // Column definitions for Incidents tab (Severity header)
-  incidentsColDefs: ColDef[] = [
-    {
-      field: "uuid",
-      minWidth: 200,
-      headerName: "Case ID",
-      sort: 'desc',
-    },
-    { 
-      field: "incidentType",
-      minWidth: 150,
-      headerName: "Incident Type",
-    },
-    {
-      field: "severity",
-      valueFormatter: severityFormatter,
-      cellRenderer: "statusCellRenderer",
-      minWidth: 150,
-      filterParams: {
-        valueFormatter: severityFormatter,
-      },
-      headerClass: "header-status",
-      headerName: "Severity",
-    },
-    { 
-      field: "location",
-      minWidth: 150,      
-    },
-    { 
-      field: "submissionDate",
-      headerName: "Date & Time of Report",
-      minWidth: 200,
-    },
-    { 
-      field: "summary",
-      minWidth: 700,
-      headerName: "Incident Summary",
-    },
-    { 
-      field: "isValidVideo",
-      headerName: "Valid Video",
-      cellDataType: 'string',
-      hide: true,
-    },
-  ];
+  incidentsColDefs: ColDef[] = [];
 
   // Column definitions for AI-GC tab (Authenticity header)
-  aiGcColDefs: ColDef[] = [
-    {
-      field: "uuid",
-      minWidth: 200,
-      headerName: "Case ID",
-      sort: 'desc',
-    },
-    { 
-      field: "incidentType",
-      minWidth: 150,
-      headerName: "Incident Type",
-    },
-    {
-      field: "authenticity",
-      valueFormatter: authenticityFormatter,
-      cellRenderer: "statusCellRenderer",
-      minWidth: 150,
-      filterParams: {
-        valueFormatter: authenticityFormatter,
-      },
-      headerClass: "header-status",
-      headerName: "Authenticity",
-    },
-    { 
-      field: "location",
-      minWidth: 150,      
-    },
-    { 
-      field: "submissionDate",
-      headerName: "Date & Time of Report",
-      minWidth: 200,
-    },
-    { 
-      field: "summary",
-      minWidth: 700,
-      headerName: "Incident Summary",
-    },
-    { 
-      field: "isValidVideo",
-      headerName: "Valid Video",
-      cellDataType: 'string',
-      hide: true,
-    },
-  ];
+  aiGcColDefs: ColDef[] = [];
 
   rowData: any[] = [];
   defaultColDef: ColDef = { 
@@ -378,6 +292,7 @@ export class AppComponent {
   aiGcCount: number = 0;
 
   handleTabClick(selectedTab: string) {
+    this.getData();
     this.gridApi.deselectAll();
     this.activeTab = selectedTab;
     
@@ -435,7 +350,6 @@ export class AppComponent {
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
   onGridReady(params: any) {
     this.gridApi = params.api;
-    this.getData();
     this.handleTabClick(this.activeTab);
   }
 
@@ -465,6 +379,7 @@ export class AppComponent {
         console.log('Updated');
         const rowNode = this.gridApi.getRowNode(id);
         if (rowNode) rowNode.setDataValue(field, value);
+        this.getData();
       },
       error: (err) => console.error(err)
     });
@@ -627,7 +542,94 @@ export class AppComponent {
     ];
 
     // If you have tab-specific columns, do the same in ngOnInit
-    this.incidentsColDefs = [...this.colDefs]; // adjust as needed
-    this.aiGcColDefs = [...this.colDefs];      // adjust for AI-GC tab
+    this.incidentsColDefs = [
+      {
+        field: "uuid",
+        minWidth: 200,
+        headerName: "Case ID",
+        sort: 'desc',
+      },
+      { 
+        field: "incidentType",
+        minWidth: 150,
+        headerName: "Incident Type",
+      },
+      {
+        field: "severity",
+        valueFormatter: severityFormatter,
+        cellRenderer: "statusCellRenderer",
+        minWidth: 150,
+        filterParams: { valueFormatter: severityFormatter },
+        headerClass: "header-status",
+        headerName: "Severity",
+        cellRendererParams: {
+          onUpdate: this.updateField.bind(this) // ✅ safe now
+        }
+      },
+      { 
+        field: "location",
+        minWidth: 150,      
+      },
+      { 
+        field: "submissionDate",
+        headerName: "Date & Time of Report",
+        minWidth: 200,
+      },
+      { 
+        field: "summary",
+        minWidth: 700,
+        headerName: "Incident Summary",
+      },
+      { 
+        field: "isValidVideo",
+        headerName: "Valid Video",
+        cellDataType: 'string',
+        hide: true,
+      },
+    ];
+    this.aiGcColDefs = [
+      {
+        field: "uuid",
+        minWidth: 200,
+        headerName: "Case ID",
+        sort: 'desc',
+      },
+      { 
+        field: "incidentType",
+        minWidth: 150,
+        headerName: "Incident Type",
+      },
+      {
+        field: "authenticity",
+        valueFormatter: authenticityFormatter,
+        // cellRenderer: "statusCellRenderer",
+        minWidth: 150,
+        filterParams: {
+          valueFormatter: authenticityFormatter,
+        },
+        headerClass: "header-status",
+        headerName: "Authenticity",
+      },
+      { 
+        field: "location",
+        minWidth: 150,      
+      },
+      { 
+        field: "submissionDate",
+        headerName: "Date & Time of Report",
+        minWidth: 200,
+      },
+      { 
+        field: "summary",
+        minWidth: 700,
+        headerName: "Incident Summary",
+      },
+      { 
+        field: "isValidVideo",
+        headerName: "Valid Video",
+        cellDataType: 'string',
+        hide: true,
+      },
+    ];
   }
 }
