@@ -134,50 +134,28 @@ const gridOptions: GridOptions = {
             </button>
           </div>
           <div class="details-body">
-            <div  *ngIf="isYouTubeVideo">
-              <div class="video-preview">
-                <iframe
-                  width="507"
-                  height="285"
-                  [src]="videoLink"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen>
-                </iframe>
-                <div class="thumbnail-header">
-                  <span>Images(s)</span>
-                  <span style="font-weight: 400;">Total: {{ videoThumbnails.length }}</span>
-                </div>
-                <div class="thumbnail-reel" *ngIf="videoThumbnails.length > 0">
-                  <img
-                    *ngFor="let thumb of videoThumbnails"
-                    [src]="thumb.url"
-                    class="thumb"
-                    (click)="playThumbnail(extractYouTubeVideoId(selectedRow.videoURL))"
-                  />
-                </div>
-              </div>
-            </div>
             <div class="video-preview" *ngIf="isLocalVideo">
               <video
                 #localVideoPlayer
                 width="507"
                 height="285"
                 [src]="localVideoUrl"
-                controls>
+                controls
+                (timeupdate)="onVideoTimeUpdate($event)">
                 Your browser does not support video tag.
               </video>
               <div class="thumbnail-header">
                 <span>Images(s)</span>
-                <span style="font-weight: 400;">Total: {{ localVideoThumbnails.length }}</span>
               </div>
-              <div class="thumbnail-reel" *ngIf="localVideoThumbnails.length > 0">
-                <img
-                  *ngFor="let thumb of localVideoThumbnails"
-                  [src]="thumb.url"
-                  class="thumb"
+              <div class="thumbnail-reel" *ngIf="filteredThumbnails.length > 0">
+                <div
+                  *ngFor="let thumb of filteredThumbnails"
+                  class="thumbnail-wrapper"
                   (click)="seekLocalVideo(thumb.timestamp)"
-                />
+                >
+                  <img [src]="thumb.url" class="thumb" />
+                  <div class="thumbnail-timestamp">{{ formatTimestamp(thumb.timestamp) }}</div>
+                </div>
               </div>
             </div>
             <div class="case-details">
@@ -231,9 +209,23 @@ const gridOptions: GridOptions = {
                 </div>
 
                 <div class="case-row">
-                  <div class="case-value" [style.white-space]="'pre-wrap'">
-                  <div class="case-value">
-                    {{ selectedRow?.videoDesc }}
+                  <div class="case-value summary-text" [style.white-space]="'pre-wrap'">
+                    <div *ngFor="let segment of summarySegments">
+                      <span 
+                        *ngIf="!segment.isTimeline"
+                        class="summary-line"
+                      >
+                        {{ segment.text }}
+                      </span>
+                      <div
+                        *ngIf="segment.isTimeline"
+                        class="timeline-line"
+                        [class.active]="isSegmentActive(segment)"
+                        (click)="seekLocalVideo(segment.timestamp!)"
+                      >
+                        {{ segment.text }}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -248,11 +240,13 @@ const gridOptions: GridOptions = {
 })
 
 export class AppComponent {
-  videoLink: SafeResourceUrl | null = null;
-  isYouTubeVideo = false;
   isLocalVideo = false;
   localVideoUrl: string | null = null;
-  localVideoThumbnails: { id: string; url: string; timestamp: number }[] = [];
+  thumbnails: { id: string; url: string; timestamp: number }[] = [];
+  filteredThumbnails: { id: string; url: string; timestamp: number }[] = [];
+  timelineEntries: { time: number; text: string }[] = [];
+  summarySegments: { text: string; isTimeline: boolean; timestamp?: number; endTime?: number }[] = [];
+  currentTime: number = 0;
   @ViewChild('localVideoPlayer', { static: false }) localVideoElement!: ElementRef<HTMLVideoElement>;
   severityLevels: Record<number, string> = {
     0: "Unassigned",
@@ -536,6 +530,7 @@ export class AppComponent {
     this.gridApi.deselectAll();
     event.node.setSelected(true);
     this.selectedRow = event.data;
+    console.log(event.data);
     this.showDetailPage = true;
     
     // Update activeTab based on row type to ensure correct label/value display
@@ -546,88 +541,208 @@ export class AppComponent {
     }
     
     // Reset flags
-    this.isYouTubeVideo = false;
     this.isLocalVideo = false;
-    this.videoLink = null;
     this.localVideoUrl = null;
     
-    // Check for local video first
-    if (event.data.name && event.data.name.endsWith('.mp4')) {
-      this.setLocalVideo(event.data.name);
-    }
-    // Then check for YouTube video
-    else if (event.data.videoURL) {
-      this.setVideoLink(event.data.videoURL);
+    // All videos (YouTube or file upload) use backend_vlm
+    if (event.data.media_uuid) {
+      this.setBackendVideo(event.data.media_uuid);
     }
   }
   
-  // Set up local video player
-  setLocalVideo(filename: string) {
-    this.isLocalVideo = true;
-    this.localVideoUrl = `assets/video/${filename}`;
+  // Parse videoDesc into clickable and non-clickable segments
+  parseSummarySegments(summary: string): { text: string; isTimeline: boolean; timestamp?: number; endTime?: number }[] {
+    if (!summary) return [];
     
-    // Load pre-generated thumbnails
-    const baseName = filename.replace('.mp4', '');
-    this.localVideoThumbnails = [
-      {
-        id: `${baseName}_1`,
-        url: `assets/video/thumbnails/${baseName}_1.jpg`,
-        timestamp: 0.25
-      },
-      {
-        id: `${baseName}_2`,
-        url: `assets/video/thumbnails/${baseName}_2.jpg`,
-        timestamp: 0.50
-      },
-      {
-        id: `${baseName}_3`,
-        url: `assets/video/thumbnails/${baseName}_3.jpg`,
-        timestamp: 0.75
+    const segments: { text: string; isTimeline: boolean; timestamp?: number; endTime?: number }[] = [];
+    
+    // Split summary into lines
+    const lines = summary.split('\n');
+    
+    // Timeline regex formats:
+    // Format 1: "MM:SS - MM:SS: description" (e.g., "00:00 - 00:05: A blue car...")
+    // Format 2: "MM:SS: description" (e.g., "00:00: A blue car...")
+    // Supports 1-2 digits for minutes (0-99)
+    const timelineRegex = /^(\d{1,2}):(\d{2})(?:\s*-\s*(\d{1,2}):(\d{2}))?:\s*(.+)$/;
+    
+    for (const line of lines) {
+      const match = line.match(timelineRegex);
+      if (match) {
+        // This is a timeline line - make it clickable
+        const startMinutes = parseInt(match[1], 10);
+        const startSeconds = parseInt(match[2], 10);
+        
+        const startTime = startMinutes * 60 + startSeconds;
+        
+        segments.push({
+          text: line,
+          isTimeline: true,
+          timestamp: startTime,
+          endTime: match[3] ? (parseInt(match[3], 10) * 60 + parseInt(match[4], 10)) : undefined
+        });
+      } else {
+        // This is a regular text line
+        segments.push({
+          text: line,
+          isTimeline: false
+        });
       }
-    ];
+    }
+    
+    console.log('Parsed summary segments:', segments);
+    return segments;
   }
 
-  // Seek local video to specific timestamp
-  seekLocalVideo(percentage: number) {
+  // Set up video player using backend_vlm
+  setBackendVideo(media_uuid: string) {
+    this.isLocalVideo = true;
+    this.localVideoUrl = `/api/video/${media_uuid}`;
+    
+    // Parse summary for clickable timeline
+    const summary = this.selectedRow?.videoDesc || this.selectedRow?.summary || '';
+    this.summarySegments = this.parseSummarySegments(summary);
+    
+    this.fetchThumbnails(media_uuid);
+  }
+
+  // Parse timeline from summary to extract significant event timestamps
+  // NOTE: Only the START time is used for thumbnail filtering
+  // The end time is only used for timeline display and active state highlighting
+  parseTimelineFromSummary(summary: string): { time: number; text: string }[] {
+    if (!summary) return [];
+    
+    const entries: { time: number; text: string }[] = [];
+    
+    // Split summary into lines
+    const lines = summary.split('\n');
+    
+    // Find lines matching timeline formats:
+    // Format 1: "MM:SS - MM:SS: description" (e.g., "00:00 - 00:05: A blue car...")
+    // Format 2: "MM:SS: description" (e.g., "00:00: A blue car...")
+    // Supports 1-2 digits for minutes (0-99)
+    // Only captures START time for thumbnail filtering
+    const timelineRegex = /^(\d{1,2}):(\d{2})(?:\s*-\s*\d{1,2}:\d{2})?:\s*(.+)$/;
+    
+    for (const line of lines) {
+      const match = line.match(timelineRegex);
+      if (match) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const totalSeconds = minutes * 60 + seconds;
+        const text = match[3].trim();
+        
+        // Only store the START time for thumbnail filtering
+        // Example: "0:15 - 0:20: Grey car turns left" → only shows thumbnail at 15s
+        entries.push({
+          time: totalSeconds,  // This is only the START time
+          text: line
+        });
+      }
+    }
+    
+    console.log('Parsed timeline entries (start times only for thumbnails):', entries);
+    return entries;
+  }
+  
+  // Fetch thumbnails from backend_vlm
+  fetchThumbnails(media_uuid: string) {
+    this.http.get<any>(`/api/thumbnails/${media_uuid}`)
+      .subscribe({
+        next: (data) => {
+          console.log('Fetched thumbnails:', data);
+          this.thumbnails = data.thumbnails || [];
+          
+          // Parse timeline from summary
+          const summary = this.selectedRow?.videoDesc || this.selectedRow?.summary || '';
+          this.timelineEntries = this.parseTimelineFromSummary(summary);
+          
+          // Filter thumbnails to show only significant events
+          this.filterThumbnailsByTimeline();
+        },
+        error: (err) => {
+          console.error('Error fetching thumbnails:', err);
+          this.thumbnails = [];
+          this.filteredThumbnails = [];
+          this.timelineEntries = [];
+        }
+      });
+  }
+  
+  // Filter thumbnails to show only those matching timeline timestamps
+  filterThumbnailsByTimeline() {
+    if (this.timelineEntries.length === 0) {
+      // If no timeline entries, show all thumbnails
+      this.filteredThumbnails = [...this.thumbnails];
+      console.log('No timeline entries, showing all thumbnails');
+      return;
+    }
+    
+    // Get unique timestamps from timeline (round to nearest integer)
+    const timelineTimestamps = this.timelineEntries.map(entry => Math.round(entry.time));
+    console.log('=== Thumbnail Filtering ===');
+    console.log('Timeline timestamps (from events):', timelineTimestamps);
+    console.log('All thumbnail timestamps:', this.thumbnails.map(t => Math.round(t.timestamp)));
+    
+    // Filter thumbnails to match timeline timestamps
+    this.filteredThumbnails = this.thumbnails.filter(thumb => {
+      const thumbTime = Math.round(thumb.timestamp);
+      
+      // Find which timeline entry this thumbnail matches (if any)
+      // Use tighter tolerance: ±0.5 seconds instead of ±1 second
+      // This prevents end-time thumbnails from matching start times incorrectly
+      const matchedTime = timelineTimestamps.find(t => Math.abs(t - thumbTime) <= 0.5);
+      
+      if (matchedTime !== undefined) {
+        console.log(`✓ Thumbnail at ${thumbTime}s → Matched timeline entry at ${matchedTime}s`);
+      }
+      
+      return matchedTime !== undefined;
+    });
+    
+    console.log('Filtered thumbnails:', this.filteredThumbnails.length, 'out of', this.thumbnails.length);
+    console.log('======================');
+  }
+
+  // Check if a timeline segment is currently active
+  isSegmentActive(segment: { text: string; isTimeline: boolean; timestamp?: number; endTime?: number }): boolean {
+    if (!segment.isTimeline || segment.timestamp === undefined) {
+      return false;
+    }
+    
+    const tolerance = 0.5;
+    
+    // If segment has both start and end time, check if current time is within range
+    if (segment.endTime !== undefined) {
+      return this.currentTime >= (segment.timestamp - tolerance) && 
+             this.currentTime <= (segment.endTime + tolerance);
+    }
+    
+    // If segment only has start time (single timestamp), show active when close to that time
+    // Active from timestamp-2 to timestamp+3 seconds
+    const windowStart = segment.timestamp - 2;
+    const windowEnd = segment.timestamp + 3;
+    return this.currentTime >= windowStart && this.currentTime <= windowEnd;
+  }
+
+  // Track video playback time
+  onVideoTimeUpdate(event: Event) {
+    const video = event.target as HTMLVideoElement;
+    this.currentTime = video.currentTime;
+  }
+
+  // Seek video to specific timestamp (in seconds)
+  seekLocalVideo(timestamp: number) {
     if (this.localVideoElement?.nativeElement) {
       const video = this.localVideoElement.nativeElement;
-      const timestamp = video.duration * percentage;
       video.currentTime = timestamp;
+      video.play().catch(e => console.log('Autoplay prevented:', e));
     }
   }
 
-  // Detect YouTube video ID
-  extractYouTubeVideoId(url: string): string {
-    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : '';
-  }
-  videoThumbnails: { id: string; url: string }[] = [];
-  // Create sanitized embed URL
-  setVideoLink(url: string) {
-    const videoId = this.extractYouTubeVideoId(url);
-    if (!videoId) return;
-    this.isYouTubeVideo = true;
-
-    // Set the main player
-    this.videoLink = this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://www.youtube.com/embed/${videoId}`
-    );
-
-    // For now, just 3 thumbnails as a sample
-    const thumbUrls = [
-      `https://img.youtube.com/vi/${videoId}/1.jpg`,
-      `https://img.youtube.com/vi/${videoId}/2.jpg`,
-      `https://img.youtube.com/vi/${videoId}/3.jpg`,
-    ];
-
-    this.videoThumbnails = thumbUrls.map((url, idx) => ({ id: `${videoId}_${idx}`, url }));
-  }
-
-  // When user clicks a thumbnail
-  playThumbnail(videoId: string) {
-    this.videoLink = this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://www.youtube.com/embed/${videoId}`
-    );
+  // Format timestamp as MM:SS
+  formatTimestamp(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 }
