@@ -157,6 +157,14 @@ const gridOptions: GridOptions = {
                   <div class="thumbnail-timestamp">{{ formatTimestamp(thumb.timestamp) }}</div>
                 </div>
               </div>
+              <div class="entity-header">
+                <span>Detected Entities</span>
+              </div>
+              <div class="entity-reel" *ngIf="entities.length > 0">
+                <div *ngFor="let entity of entities" class="entity-wrapper">
+                  <img [src]="entity.url" class="entity-image" />
+                </div>
+              </div>
             </div>
             <div class="case-details">
               <div class="case-title">
@@ -239,11 +247,12 @@ const gridOptions: GridOptions = {
   changeDetection: ChangeDetectionStrategy.Default,
 })
 
-export class AppComponent {
+  export class AppComponent {
   isLocalVideo = false;
   localVideoUrl: string | null = null;
   thumbnails: { id: string; url: string; timestamp: number }[] = [];
   filteredThumbnails: { id: string; url: string; timestamp: number }[] = [];
+  entities: { id: string; filename: string; url: string }[] = [];
   timelineEntries: { time: number; text: string }[] = [];
   summarySegments: { text: string; isTimeline: boolean; timestamp?: number; endTime?: number }[] = [];
   currentTime: number = 0;
@@ -603,6 +612,22 @@ export class AppComponent {
     this.summarySegments = this.parseSummarySegments(summary);
     
     this.fetchThumbnails(media_uuid);
+    this.fetchEntities(media_uuid);
+  }
+
+  // Fetch entities from backend_vlm
+  fetchEntities(media_uuid: string) {
+    this.http.get<any>(`/api/entities/${media_uuid}`)
+      .subscribe({
+        next: (data) => {
+          console.log('Fetched entities:', data);
+          this.entities = data.entities || [];
+        },
+        error: (err) => {
+          console.error('Error fetching entities:', err);
+          this.entities = [];
+        }
+      });
   }
 
   // Parse timeline from summary to extract significant event timestamps
