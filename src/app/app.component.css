@@ -2,6 +2,28 @@
   overflow-y: auto;
 }
 
+/* Video Preview Styles */
+.video-preview {
+  position: relative;
+}
+
+.video-watermark {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 16px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px 24px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 /* Thumbnail Styles */
 .thumbnail-header {
   display: flex;

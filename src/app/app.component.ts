@@ -48,6 +48,7 @@ const gridOptions: GridOptions = {
   getRowId: params => params.data.uuid,
 };
 
+// TODO: REMOVE THUMBNAIL, clean up code
 @Component({
   styleUrls: ['./app.component.css'],
   standalone: true,
@@ -134,8 +135,9 @@ const gridOptions: GridOptions = {
             </button>
           </div>
           <div class="details-body">
+            
             <div class="video-preview" *ngIf="isLocalVideo">
-              <video
+              <div><video
                 #localVideoPlayer
                 width="507"
                 height="285"
@@ -144,21 +146,13 @@ const gridOptions: GridOptions = {
                 (timeupdate)="onVideoTimeUpdate($event)">
                 Your browser does not support video tag.
               </video>
-              <div class="thumbnail-header">
-                <span>Images(s)</span>
-              </div>
-              <div class="thumbnail-reel" *ngIf="filteredThumbnails.length > 0">
-                <div
-                  *ngFor="let thumb of filteredThumbnails"
-                  class="thumbnail-wrapper"
-                  (click)="seekLocalVideo(thumb.timestamp)"
-                >
-                  <img [src]="thumb.url" class="thumb" />
-                  <div class="thumbnail-timestamp">{{ formatTimestamp(thumb.timestamp) }}</div>
+              <div class="video-watermark">
+                FOR DEMO PURPOSES ONLY 
                 </div>
               </div>
+              
               <div class="entity-header">
-                <span>Detected Entities</span>
+                <span>Detected Person / Vehicle</span>
               </div>
               <div class="entity-reel" *ngIf="entities.length > 0">
                 <div *ngFor="let entity of entities" class="entity-wrapper">
