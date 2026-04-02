@@ -314,34 +314,41 @@ export class AppComponent {
     this.gridApi.deselectAll();
     this.showDetailPage = false;
   }
-  onExport() {
-    // DETAIL PAGE EXPORT
+  
+  async onExport() {
     if (this.showDetailPage && this.selectedRow) {
-
-      this.gridApi.exportDataAsCsv({
-        fileName: 'export-report.csv',
-        onlySelected: false,
-        shouldRowBeSkipped: (params) => {
-          return params.node.data !== this.selectedRow;
-        }
+      const response = await fetch('http://localhost:3000/api/generate-pdf', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          data: this.selectedRow
+        })
       });
 
-      return;
-    }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Report-${this.selectedRow.uuid}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } 
+    else
+    {
+         const selectedRows = this.gridApi.getSelectedRows();
 
-    // TABLE EXPORT
-    const selectedRows = this.gridApi.getSelectedRows();
-
-    if (!selectedRows.length) {
-      console.warn('No rows selected');
-      return;
+      if (!selectedRows.length) {
+        console.warn('No rows selected');
+        return;
     }
 
     this.gridApi.exportDataAsCsv({
       onlySelected: true,
-      fileName: 'export-report.csv',
-    });
+      fileName: 'VIVI_Report.csv',
+    });}
   }
+  
   selectedRowCount = 0;
   onSelectionChanged() {
     this.selectedRowCount = this.gridApi.getSelectedRows().length;
