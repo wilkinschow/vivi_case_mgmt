@@ -229,7 +229,7 @@ const gridOptions: GridOptions = {
                         [value]="selectedRow?.location || ''"
                         (input)="onLocationInput($event)"
                         (blur)="onDetailLocationChange($event)"
-                        (keydown.enter)="onLocationEnter($event)"
+                        (keydown)="onLocationKeydown($event)"
                         placeholder="Type a location..."
                       />
                       <button
@@ -242,8 +242,9 @@ const gridOptions: GridOptions = {
                     </div>
                     <div class="autocomplete-dropdown" *ngIf="filteredCities.length > 0 && showCityDropdown">
                       <div
-                        *ngFor="let city of filteredCities"
+                        *ngFor="let city of filteredCities; let i = index"
                         class="autocomplete-item"
+                        [class.highlighted]="highlightedIndex === i"
                         (mousedown)="selectCity(city)"
                       >
                         {{ city }}
@@ -499,10 +500,12 @@ export class AppComponent {
   // Autocomplete state
   filteredCities: string[] = [];
   showCityDropdown = false;
+  highlightedIndex: number = -1;
 
   // Handle input typing - filter cities by prefix match
   onLocationInput(event: any) {
     const value = event.target.value.trim();
+    this.highlightedIndex = -1;
     if (value.length > 0) {
       const prefix = value.toLowerCase();
       this.filteredCities = this.citySuggestions.filter(city =>
@@ -513,6 +516,52 @@ export class AppComponent {
       this.filteredCities = [];
       this.showCityDropdown = false;
     }
+  }
+
+  // Handle keyboard navigation in autocomplete
+  onLocationKeydown(event: KeyboardEvent) {
+    if (!this.showCityDropdown || this.filteredCities.length === 0) {
+      if (event.key === 'Enter') {
+        const target = event.target as HTMLElement;
+        if (target) target.blur();
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.highlightedIndex = (this.highlightedIndex + 1) % this.filteredCities.length;
+      this.scrollHighlightedIntoView();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.highlightedIndex = this.highlightedIndex <= 0
+        ? this.filteredCities.length - 1
+        : this.highlightedIndex - 1;
+      this.scrollHighlightedIntoView();
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (this.highlightedIndex >= 0 && this.highlightedIndex < this.filteredCities.length) {
+        this.selectCity(this.filteredCities[this.highlightedIndex]);
+      } else {
+        this.showCityDropdown = false;
+        const target = event.target as HTMLElement;
+        if (target) target.blur();
+      }
+    } else if (event.key === 'Escape') {
+      this.showCityDropdown = false;
+      this.highlightedIndex = -1;
+    }
+  }
+
+  // Scroll highlighted item into view
+  scrollHighlightedIntoView() {
+    setTimeout(() => {
+      const dropdown = document.querySelector('.autocomplete-dropdown');
+      const highlighted = dropdown?.querySelector('.autocomplete-item.highlighted') as HTMLElement;
+      if (highlighted) {
+        highlighted.scrollIntoView({ block: 'nearest' });
+      }
+    }, 0);
   }
 
   // Clear location input
@@ -534,6 +583,7 @@ export class AppComponent {
   selectCity(city: string) {
     this.showCityDropdown = false;
     this.filteredCities = [];
+    this.highlightedIndex = -1;
 
     // Update the input element's visible value
     if (this.locationInputRef?.nativeElement) {
@@ -558,6 +608,7 @@ export class AppComponent {
   // Handle location change from detail page input (on blur)
   onDetailLocationChange(event: any) {
     this.showCityDropdown = false;
+    this.highlightedIndex = -1;
     const value = event.target.value.trim();
 
     if (this.selectedRow?._id && value !== this.selectedRow?.location) {

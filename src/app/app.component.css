@@ -57,7 +57,8 @@
   transition: background 0.15s ease;
 }
 
-.autocomplete-item:hover {
+.autocomplete-item:hover,
+.autocomplete-item.highlighted {
   background: rgba(74, 144, 226, 0.3);
   color: #ffffff;
 }
