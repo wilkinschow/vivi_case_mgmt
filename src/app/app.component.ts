@@ -174,7 +174,19 @@ const gridOptions: GridOptions = {
 
                 <div class="case-row">
                   <div class="case-label">Incident Type</div>
-                  <div class="case-value">{{ selectedRow?.incidentType }}</div>
+                  <div class="incident-type-wrapper">
+                    <select
+                      class="detail-dropdown"
+                      [value]="selectedRow?.incidentType"
+                      (change)="onDetailIncidentTypeChange($event)"
+                    >
+                      <option value="Traffic">Traffic</option>
+                      <option value="Fire">Fire</option>
+                      <option value="Fighting">Fighting</option>
+                      <option value="Unlawful Gathering">Unlawful Gathering</option>
+                      <option value="Others">Others</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div class="case-row">
@@ -185,7 +197,15 @@ const gridOptions: GridOptions = {
                       [ngClass]="severityLevels[severityOrAuthenticityValue] + 'Tag'"
                       [style.padding]="'0px 12px'"
                     >
-                      {{ severityLevels[severityOrAuthenticityValue] }}
+                      <select
+                        class="detail-dropdown"
+                        [value]="severityLevels[severityOrAuthenticityValue]"
+                        (change)="onDetailSeverityChange($event)"
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                      </select>
                     </div>
                   </span>
                   <span style="display: inline-block;" *ngIf="activeTab === 'false'">
@@ -414,6 +434,36 @@ export class AppComponent {
     if (value === null || value === undefined) return "";
     const percentage = (value * 100).toFixed(0);
     return `${percentage}%`;
+  }
+
+  // Handle severity change from detail page dropdown
+  onDetailSeverityChange(event: any) {
+    const label = event.target.value;
+    const labelToValueMap: Record<string, number> = {
+      Low: 1,
+      Medium: 2,
+      High: 3
+    };
+    const value = labelToValueMap[label];
+
+    if (this.selectedRow?._id) {
+      // Update UI optimistically
+      this.selectedRow.severity = value;
+      // Call the same updateField method used by the data grid
+      this.updateField(this.selectedRow._id, 'severity', value);
+    }
+  }
+
+  // Handle incident type change from detail page dropdown
+  onDetailIncidentTypeChange(event: any) {
+    const value = event.target.value;
+
+    if (this.selectedRow?._id) {
+      // Update UI optimistically
+      this.selectedRow.incidentType = value;
+      // Call the same updateField method used by the data grid
+      this.updateField(this.selectedRow._id, 'incidentType', value);
+    }
   }
 
   onRowClicked(event: any) {
