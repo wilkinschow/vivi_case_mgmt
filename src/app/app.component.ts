@@ -261,6 +261,7 @@ const gridOptions: GridOptions = {
                 </div>
 
                 <div class="case-row">
+                  <div class="case-label">Incident Summary</div>
                   <div class="case-value summary-text" [style.white-space]="'pre-wrap'">
                     <div *ngFor="let segment of summarySegments">
                       <span 
@@ -278,6 +279,19 @@ const gridOptions: GridOptions = {
                         {{ segment.text }}
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                <div class="case-row remarks-section">
+                  <div class="case-label">Remarks</div>
+                  <div class="case-value">
+                    <textarea
+                      class="remarks-textarea"
+                      [value]="selectedRow?.remarks || ''"
+                      (blur)="onRemarksChange($event)"
+                      placeholder="No remarks yet. Click to add..."
+                      rows="3"
+                    ></textarea>
                   </div>
                 </div>
 
@@ -602,6 +616,16 @@ export class AppComponent {
     const target = event.target as HTMLElement;
     if (target) {
       target.blur();
+    }
+  }
+
+  // Handle remarks change from detail page textarea (on blur)
+  onRemarksChange(event: any) {
+    const value = event.target.value.trim();
+
+    if (this.selectedRow?._id && value !== (this.selectedRow?.remarks || '')) {
+      this.selectedRow.remarks = value;
+      this.updateField(this.selectedRow._id, 'remarks', value);
     }
   }
 

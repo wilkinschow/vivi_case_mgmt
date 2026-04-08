@@ -173,6 +173,44 @@
   background: #fff;
 }
 
+/* Remarks Section */
+.remarks-section {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.remarks-textarea {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: text;
+  color: #F7F9F9;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  padding: 8px 12px;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.remarks-textarea:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.remarks-textarea:focus {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.remarks-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
 /* Incident Type wrapper - transparent style matching case-value text color */
 .incident-type-wrapper {
   flex: 1;
