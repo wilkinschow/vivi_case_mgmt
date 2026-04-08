@@ -27,6 +27,131 @@
   background: #fff;
 }
 
+/* Autocomplete Wrapper */
+.autocomplete-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 240px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #2a2d3e;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  margin-top: 2px;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #e0e0e0;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.autocomplete-item:hover {
+  background: rgba(74, 144, 226, 0.3);
+  color: #ffffff;
+}
+
+.autocomplete-item:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.autocomplete-item:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+/* Custom scrollbar for autocomplete */
+.autocomplete-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Input Group (input + clear button) */
+.input-group {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.input-group .detail-input {
+  padding-right: 28px;
+}
+
+/* Location Input Styles (detail page) */
+.detail-input {
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: text;
+  color: #F7F9F9;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  padding: 4px 12px;
+  outline: none;
+}
+
+.detail-input:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.detail-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Clear Button inside input */
+.clear-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 /* Severity dropdown inside colored tag: transparent background to show tag color */
 .tag .detail-dropdown {
   background: transparent;

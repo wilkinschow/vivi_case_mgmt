@@ -220,7 +220,36 @@ const gridOptions: GridOptions = {
 
                 <div class="case-row">
                   <div class="case-label">Location</div>
-                  <div class="case-value">{{ selectedRow?.location }}</div>
+                  <div class="case-value autocomplete-wrapper">
+                    <div class="input-group">
+                      <input
+                        #locationInput
+                        class="detail-input"
+                        type="text"
+                        [value]="selectedRow?.location || ''"
+                        (input)="onLocationInput($event)"
+                        (blur)="onDetailLocationChange($event)"
+                        (keydown.enter)="onLocationEnter($event)"
+                        placeholder="Type a location..."
+                      />
+                      <button
+                        class="clear-btn"
+                        type="button"
+                        *ngIf="selectedRow?.location"
+                        (mousedown)="clearLocation($event)"
+                        title="Clear location"
+                      >&times;</button>
+                    </div>
+                    <div class="autocomplete-dropdown" *ngIf="filteredCities.length > 0 && showCityDropdown">
+                      <div
+                        *ngFor="let city of filteredCities"
+                        class="autocomplete-item"
+                        (mousedown)="selectCity(city)"
+                      >
+                        {{ city }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="case-row">
@@ -272,6 +301,7 @@ export class AppComponent {
   timelineEntries: { time: number; text: string }[] = [];
   summarySegments: { text: string; isTimeline: boolean; timestamp?: number; endTime?: number }[] = [];
   currentTime: number = 0;
+  @ViewChild('locationInput', { static: false }) locationInputRef!: ElementRef<HTMLInputElement>;
   @ViewChild('localVideoPlayer', { static: false }) localVideoElement!: ElementRef<HTMLVideoElement>;
   severityLevels: Record<number, string> = {
     0: "Unassigned",
@@ -465,6 +495,101 @@ export class AppComponent {
       this.updateField(this.selectedRow._id, 'incidentType', value);
     }
   }
+
+  // Autocomplete state
+  filteredCities: string[] = [];
+  showCityDropdown = false;
+
+  // Handle input typing - filter cities by prefix match
+  onLocationInput(event: any) {
+    const value = event.target.value.trim();
+    if (value.length > 0) {
+      const prefix = value.toLowerCase();
+      this.filteredCities = this.citySuggestions.filter(city =>
+        city.toLowerCase().startsWith(prefix)
+      );
+      this.showCityDropdown = this.filteredCities.length > 0;
+    } else {
+      this.filteredCities = [];
+      this.showCityDropdown = false;
+    }
+  }
+
+  // Clear location input
+  clearLocation(event: any) {
+    event.preventDefault();
+    if (this.locationInputRef?.nativeElement) {
+      this.locationInputRef.nativeElement.value = '';
+    }
+    this.filteredCities = [];
+    this.showCityDropdown = false;
+
+    if (this.selectedRow?._id) {
+      this.selectedRow.location = '';
+      this.updateField(this.selectedRow._id, 'location', '');
+    }
+  }
+
+  // Handle city selection from dropdown
+  selectCity(city: string) {
+    this.showCityDropdown = false;
+    this.filteredCities = [];
+
+    // Update the input element's visible value
+    if (this.locationInputRef?.nativeElement) {
+      this.locationInputRef.nativeElement.value = city;
+    }
+
+    if (this.selectedRow?._id) {
+      this.selectedRow.location = city;
+      this.updateField(this.selectedRow._id, 'location', city);
+    }
+  }
+
+  // Handle Enter key on location input - blur the input to trigger save
+  onLocationEnter(event: any) {
+    this.showCityDropdown = false;
+    const target = event.target as HTMLElement;
+    if (target) {
+      target.blur();
+    }
+  }
+
+  // Handle location change from detail page input (on blur)
+  onDetailLocationChange(event: any) {
+    this.showCityDropdown = false;
+    const value = event.target.value.trim();
+
+    if (this.selectedRow?._id && value !== this.selectedRow?.location) {
+      // Update UI optimistically
+      this.selectedRow.location = value;
+      // Call the same updateField method used by the data grid
+      this.updateField(this.selectedRow._id, 'location', value);
+    }
+  }
+
+  // Singapore locations for autocomplete
+  citySuggestions: string[] = [
+    "Admiralty", "Ang Mo Kio", "Balestier", "Bayshore", "Bedok",
+    "Bedok Reservoir", "Bishan", "Boat Quay", "Boon Lay", "Boulevard",
+    "Bugis", "Buangkok", "Bukit Batok", "Bukit Merah", "Bukit Panjang",
+    "Bukit Timah", "Central Water Catchment", "Changi", "Changi Bay",
+    "Chinatown", "Choa Chu Kang", "City Hall", "Clarke Quay", "Clementi",
+    "Compassvale", "Dhoby Ghaut", "East Coast", "Farrer Park", "Fernvale",
+    "Geylang", "Holland Village", "Hougang", "Hougang Central", "Joo Chiat",
+    "Jurong East", "Jurong Industrial Estate", "Jurong Island", "Jurong West",
+    "Kallang", "Katong", "Kembangan", "Lakeside", "Lim Chu Kang",
+    "Little India", "Lorong Halus", "MacPherson", "Mandai", "Marina Bay",
+    "Marina East", "Marina South", "Marine Parade", "Mountbatten", "Nanyang",
+    "Newton", "Novena", "Orchard", "Outram", "Pasir Ris", "Paya Lebar",
+    "Pioneer", "Pulau Ubin", "Punggol", "Queenstown", "Raffles Place",
+    "Rivervale", "River Valley", "Rochor", "Seletar", "Sembawang",
+    "Sengkang", "Sentosa", "Serangoon", "Siglap", "Simei", "Simpang",
+    "Singapore River", "Springleaf", "Sungei Kadut", "Tampines", "Tanglin",
+    "Tanah Merah", "Teban Gardens", "Telok Blangah", "Tengah",
+    "Tiong Bahru", "Toa Payoh", "Toh Guan", "Tuas", "West Coast",
+    "Western Islands", "Woodlands", "Yishun", "Yuhua"
+  ];
 
   onRowClicked(event: any) {
     this.gridApi.deselectAll();
