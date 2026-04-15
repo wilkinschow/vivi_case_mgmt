@@ -46,6 +46,11 @@ const gridOptions: GridOptions = {
   columnMenu: 'new',
   suppressRowClickSelection: true,
   getRowId: params => params.data.uuid,
+  selectionColumnDef: {
+  minWidth: 48,        // floor — prevents clipping
+  resizable: false,
+  suppressHeaderMenuButton: true,
+  }  
 };
 
 // TODO: REMOVE THUMBNAIL, clean up code
