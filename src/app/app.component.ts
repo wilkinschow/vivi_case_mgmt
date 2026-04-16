@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, ViewChild, ElementRef } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ViewChild, ElementRef, OnDestroy } from "@angular/core";
 import { AgGridAngular } from "ag-grid-angular";
 import type {
   ColDef,
@@ -357,6 +357,7 @@ export class AppComponent {
     statusCellRenderer: StatusCellRendererComponent,
   };
   private gridApi!: GridApi;
+  private dataPollingInterval: any;
   incidentCount : number = 0;
   aiGcCount: number = 0;
 
@@ -1068,5 +1069,16 @@ export class AppComponent {
         hide: true,
       },
     ];
+
+    // Start polling for new data every 3 seconds
+    this.dataPollingInterval = setInterval(() => {
+      this.getData();
+    }, 3000);
+  }
+
+  ngOnDestroy() {
+    if (this.dataPollingInterval) {
+      clearInterval(this.dataPollingInterval);
+    }
   }
 }
