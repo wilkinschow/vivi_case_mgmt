@@ -14,8 +14,9 @@ interface StatusCellRendererParams extends ICellRendererParams {
   imports: [CommonModule],
   template: `
     <div class="tag" [ngClass]="statusClass" (click)="$event.stopPropagation()">
+      <span class="tag-label">{{ value }}</span>
       <select
-        class="dropdown"
+        class="dropdown-overlay"
         [value]="value"
         (change)="onChange($event)"
         (click)="$event.stopPropagation()"
@@ -28,16 +29,26 @@ interface StatusCellRendererParams extends ICellRendererParams {
     </div>
   `,
   styles: [`
-    .dropdown {
-      margin-left: auto;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: var(--Colours-Information-Blue-Info-Blue-1, #002766) !important;
+    .tag-label {
       font-size: 16px;
       font-style: normal;
       font-weight: 900;
       line-height: 24px;
+      color: var(--Colours-Information-Blue-Info-Blue-1, #002766) !important;
+      pointer-events: none;
+    }
+
+    .dropdown-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 16px;
     }
   `]
 })
